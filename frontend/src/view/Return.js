@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "../styles/StockManager.module.css";
 import { getAllInvoices, deleteInvoice } from "../services/invoiceService";
 import { useNavigate } from "react-router-dom";
-const StockManager = () => {
+const Return = () => {
   const navigate = useNavigate();
 
   const [invoices, setInvoices] = useState([]);
@@ -103,4 +103,4 @@ const StockManager = () => {
   );
 };
 
-export default StockManager;
+export default Return;

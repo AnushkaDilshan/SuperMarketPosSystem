@@ -6,7 +6,7 @@ import "jspdf-autotable";
 import { useUser } from "../context/UserContext";
 import { useLocation } from 'react-router-dom';
 
-const StockManager = () => {
+const PaymentManagement = () => {
   const [stocks, setStocks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState([]);
@@ -17,50 +17,71 @@ const StockManager = () => {
 
   const { state } = useLocation();
   const invoiceId = state?.invoiceId;
-
+const [loadingStocks, setLoadingStocks] = useState(true);
   useEffect(() => {
     fetchStocks();
 
-  
   }, []);
+
 useEffect(() => {
-  if (invoiceId && stocks.length > 0) {
+  if (invoiceId && !loadingStocks && stocks.length > 0) {
     fetchInvoice(invoiceId);
   }
-}, [stocks, invoiceId]);
+}, [loadingStocks]);
 
 const fetchInvoice = async (invoiceId) => {
    try {
       const data = await getbyInvoiceid(invoiceId);
-  data.items.map((item) => addToBill(item));
+      data.items.map((item) => addToBillInvoice(item));
 
     } catch (err) {
       console.error("Fetch error:", err);
     }
 }
-  const fetchStocks = async () => {
+
+const fetchStocks = async () => {
     try {
+      setLoadingStocks(true);
       const data = await StockService.fetchStocks();
       setStocks(data);
     
     } catch (err) {
       console.error("Fetch error:", err);
+    }finally {
+      setLoadingStocks(false);
     }
-  };
+};
 
-  const parseDiscounts = (discount) => {
+const parseDiscounts = (discount) => {
     if (!discount) return [];
     if (typeof discount !== "string") discount = discount.toString();
     return discount
       .split(",")
       .map((d) => Number(d.trim()))
       .filter((d) => !isNaN(d) && d > 0);
+};
+
+const addToBillInvoice = (InvoiceItem) => {
+  const stockItem = stocks.find((s) => s.item_code === InvoiceItem.item_code);
+
+  if (!stockItem) {
+    console.warn(`Item with code ${InvoiceItem.item_code} not found in stock`);
+    return;
+  }
+
+  const invoiceMappedItem = {
+    ...stockItem,
+    qty: InvoiceItem.qty,
+    appliedDiscount: InvoiceItem.applied_discount,
   };
+
+  setCart((prevCart) => [...prevCart, invoiceMappedItem]);
+};
 
   const addToBill = (item) => {
     const stockItem = stocks.find((s) => s.item_code === item.item_code);
        
-           console.log("test it",item);
+  console.log("test it",item);
   console.log("stock it",stockItem);
     if (!stockItem || stockItem.qty < 1) {
       alert("Item out of stock");
@@ -76,7 +97,7 @@ const fetchInvoice = async (invoiceId) => {
       updateQty(item.item_code, exists.qty + 1);
     } else {
       const newItem = {
-        ...item,
+        ...stockItem,
         qty: 1,
         appliedDiscount: 0,
       };
@@ -123,7 +144,7 @@ const fetchInvoice = async (invoiceId) => {
       )
     );
   };
-
+    
   const removeFromBill = (item_code) => {
     const cartItem = cart.find((ci) => ci.item_code === item_code);
     if (!cartItem) return;
@@ -149,7 +170,6 @@ const fetchInvoice = async (invoiceId) => {
       return total + discountedPrice * item.qty;
     }, 0);
   };
-
   const getBalance = () => {
     const total = calculateTotal();
     const paid = parseFloat(paidAmount);
@@ -240,7 +260,6 @@ const fetchInvoice = async (invoiceId) => {
       </body>
     </html>
   `;
-
     const printWindow = window.open();
     printWindow.document.open();
     printWindow.document.write(invoiceHTML);
@@ -520,49 +539,13 @@ const fetchInvoice = async (invoiceId) => {
                 <label>Balance: </label>
                 <strong>Rs. {getBalance()}</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                {/* <button
-                  onClick={async () => {
-                    try {
-                      const total = calculateTotal();
-
-                      await createInvoice(cart, total);
- generatePDF();
-                      alert(
-                        `Payment successful via ${paymentMethod}. Invoice saved!`
-                      );
-                      setCart([]);
-                      
-                      localStorage.removeItem("cart");
-                      fetchStocks();
-                    
-                      resetPayment();
-                
-
-                    } catch (error) {
-                      console.error("Invoice save error:", error);
-                      alert("Payment processed, but failed to save invoice!");
-                    }
-                  }}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#1890ff",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Confirm
-                </button> */}
+              <div style={{ display: "flex", justifyContent: "space-between" }}>           
                 <button
                   onClick={async () => {
                     try {
                       const total = calculateTotal();
-
                       console.log("user", user);
-                      console.log("cart", cart);
-                      
+                      console.log("cart", cart);                    
                       const response = await createInvoice(
                         cart,
                         total,
@@ -570,21 +553,17 @@ const fetchInvoice = async (invoiceId) => {
                         paymentMethod
                       ); // Make sure this returns invoice data
                       const savedInvoice = response.data;
-
                       console.log("Saved Invoice:", savedInvoice);
                       // Step 2: Notify success
                       alert(
                         `Payment successful via ${paymentMethod}. Invoice saved!`
                       );
-
                       const itemsToUpdate = cart.map((item) => ({
                         item_code: item.item_code,
                         qty: item.qty,
                       }));
                       await StockService.updateStockQuantities(itemsToUpdate);
-
                       printInvoice(response._id);
-
                       console.log("hii", response._id);
 
                       // Step 4: Reset UI state
@@ -619,7 +598,7 @@ const fetchInvoice = async (invoiceId) => {
                     borderRadius: "6px",
                     cursor: "pointer",
                   }}
-                >
+             >
                   Cancel
                 </button>
               </div>
@@ -631,4 +610,4 @@ const fetchInvoice = async (invoiceId) => {
   );
 };
 
-export default StockManager;
+export default PaymentManagement;

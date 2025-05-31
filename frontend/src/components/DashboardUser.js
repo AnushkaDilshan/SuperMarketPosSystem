@@ -11,9 +11,7 @@ const DashboardUser = () => {
 
   };
 
-  const goToAddStock = () => {
-    navigate('/stock');
-  };
+ 
 
   const goToSettings = () => {
     navigate('/shop');
@@ -29,7 +27,7 @@ const DashboardUser = () => {
   return (
     <div>
       <h2>User Dashboard</h2>
-      <button onClick={goToAddStock}>Stock</button>
+    
       <button onClick={goToSettings}>Settings</button>
       <button onClick={goToPayment}>Payment</button>
          <button onClick={goToReturnPayment}>Return</button>

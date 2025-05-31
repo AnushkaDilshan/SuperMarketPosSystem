@@ -9,10 +9,14 @@ const DashboardUser = () => {
     console.log('test2');
     navigate('/');
   };
+   const goToAddStock = () => {
+    navigate('/stock');
+  };
 
   return (
     <div>
       <h2>Admin Dashboard</h2>
+        <button onClick={goToAddStock}>Stock</button>
       <button onClick={handleLogout}>Logout</button>
     </div>
   );
