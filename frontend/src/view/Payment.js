@@ -20,7 +20,6 @@ const PaymentManagement = () => {
 const [loadingStocks, setLoadingStocks] = useState(true);
   useEffect(() => {
     fetchStocks();
-
   }, []);
 
 useEffect(() => {
@@ -68,7 +67,6 @@ const addToBillInvoice = (InvoiceItem) => {
     console.warn(`Item with code ${InvoiceItem.item_code} not found in stock`);
     return;
   }
-
   const invoiceMappedItem = {
     ...stockItem,
     qty: InvoiceItem.qty,
@@ -190,7 +188,13 @@ const addToBillInvoice = (InvoiceItem) => {
       stock.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const printInvoice = (invoiceId) => {
+  const printInvoice = async (invoiceId) => {
+  try {
+    
+    const response = await fetch('http://localhost:5000/api/shop');
+    const shops = await response.json();
+    const shop = shops[0] || { name: "Shop", address: "", phone: "" };
+
     const currentDate = new Date().toLocaleString();
     const total = calculateTotal();
     const paid = parseFloat(paidAmount) || 0;
@@ -209,8 +213,8 @@ const addToBillInvoice = (InvoiceItem) => {
         </style>
       </head>
       <body>
-        <h2>🛒 SuperMarket Receipt</h2>
-        <p>123 Main Street, Colombo<br>Tel: 011-1234567</p>
+        <h2>🛒 ${shop.shop_name}</h2>
+        <p>${shop.shop_address}<br>Tel: ${shop.shop_tp}</p>
         <p><strong>Invoice No:</strong> ${invoiceId}<br><strong>Date:</strong> ${currentDate}</p>
         <table>
           <thead>
@@ -260,15 +264,20 @@ const addToBillInvoice = (InvoiceItem) => {
       </body>
     </html>
   `;
+
     const printWindow = window.open();
     printWindow.document.open();
     printWindow.document.write(invoiceHTML);
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
-    // Optionally close the window after printing
     // printWindow.close();
-  };
+  } catch (error) {
+    console.error("Error printing invoice:", error);
+    alert("Unable to fetch shop details for invoice.");
+  }
+};
+
 
   return (
     <div style={{ display: "flex", gap: "30px", padding: "20px" }}>
@@ -559,7 +568,7 @@ const addToBillInvoice = (InvoiceItem) => {
                         `Payment successful via ${paymentMethod}. Invoice saved!`
                       );
                       const itemsToUpdate = cart.map((item) => ({
-                        item_code: item.item_code,
+                        itemid: item._id,
                         qty: item.qty,
                       }));
                       await StockService.updateStockQuantities(itemsToUpdate);

@@ -107,7 +107,7 @@ exports.updateStockQuantities = async (req, res) => {
 
     for (const item of items) {
       await Stock.updateOne(
-        { item_code: item.item_code },
+        { _id: item.itemid },
         { $inc: { qty: -item.qty } }
       );
     }

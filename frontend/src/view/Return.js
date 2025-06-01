@@ -4,7 +4,6 @@ import { getAllInvoices, deleteInvoice } from "../services/invoiceService";
 import { useNavigate } from "react-router-dom";
 const Return = () => {
   const navigate = useNavigate();
-
   const [invoices, setInvoices] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 

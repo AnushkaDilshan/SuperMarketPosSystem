@@ -1,0 +1,62 @@
+/* Base container styling */
+.dashboard-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f4f4f4;
+  padding: 16px;
+}
+
+/* Card styling */
+.dashboard-card {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Buttons layout */
+.dashboard-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Button styling */
+.dashboard-buttons button {
+  flex: 1 1 45%;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dashboard-buttons button:hover {
+  background-color: #0056b3;
+}
+
+/* Logout button specific style */
+.logout-btn {
+  background-color: #dc3545;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+/* Responsive fallback for very small screens */
+@media (max-width: 320px) {
+  .dashboard-buttons button {
+    flex: 1 1 100%;
+  }
+}
