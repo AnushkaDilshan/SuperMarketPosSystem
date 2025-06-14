@@ -1,0 +1,49 @@
+.container {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th, .table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+.qtyInput {
+  width: 60px;
+  padding: 5px;
+}
+
+.summary {
+  margin-top: 30px;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.total {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}

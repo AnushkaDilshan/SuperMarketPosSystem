@@ -26,3 +26,10 @@ export const getbyInvoiceid = async (invoiceId) => {
   const res = await axios.get(`${API_URL}/invoice/${invoiceId}`);
   return res.data;
 };
+export const processReturn = async (invoiceId, returnItems,userId) => {
+  const response = await axios.post(
+    `http://localhost:5000/api/invoice/${invoiceId}/return`,
+    { returnItems,userId }
+  );
+  return response.data;
+};

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import StockService from "../services/stockService";
-import InvoiceService from '../services/invoiceService';
+
 import { createInvoice,getbyInvoiceid } from "../services/invoiceService";
 import "jspdf-autotable";
 import { useUser } from "../context/UserContext";
@@ -18,6 +18,7 @@ const PaymentManagement = () => {
   const { state } = useLocation();
   const invoiceId = state?.invoiceId;
 const [loadingStocks, setLoadingStocks] = useState(true);
+// const returnMode = Boolean(invoiceId);
   useEffect(() => {
     fetchStocks();
   }, []);
@@ -61,20 +62,22 @@ const parseDiscounts = (discount) => {
 };
 
 const addToBillInvoice = (InvoiceItem) => {
-  const stockItem = stocks.find((s) => s.item_code === InvoiceItem.item_code);
+  const stockItem = stocks.find(s => s.item_code === InvoiceItem.item_code);
+  if (!stockItem) return;
 
-  if (!stockItem) {
-    console.warn(`Item with code ${InvoiceItem.item_code} not found in stock`);
-    return;
-  }
-  const invoiceMappedItem = {
-    ...stockItem,
-    qty: InvoiceItem.qty,
-    appliedDiscount: InvoiceItem.applied_discount,
-  };
-
-  setCart((prevCart) => [...prevCart, invoiceMappedItem]);
+  setCart(prev => [
+    ...prev,
+    {
+      ...stockItem,
+      qty: InvoiceItem.qty,
+      appliedDiscount: InvoiceItem.applied_discount,
+      /** flags for the return feature */
+      original : true,   // came from the old invoice
+      isReturn : false,  // not yet returned
+    },
+  ]);
 };
+
 
   const addToBill = (item) => {
     const stockItem = stocks.find((s) => s.item_code === item.item_code);
@@ -160,14 +163,14 @@ const addToBillInvoice = (InvoiceItem) => {
     );
   };
 
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const discount = item.appliedDiscount ?? 0;
-      const discountAmount = (item.seling_price * discount) / 100;
-      const discountedPrice = item.seling_price - discountAmount;
-      return total + discountedPrice * item.qty;
-    }, 0);
-  };
+const calculateTotal = () =>
+  cart.reduce((sum, item) => {
+    const disc      = item.appliedDiscount ?? 0;
+    const netPrice  = item.seling_price - (item.seling_price * disc) / 100;
+    const lineTotal = netPrice * item.qty;
+    return sum + (item.isReturn ? -lineTotal : lineTotal); // ← key!
+  }, 0);
+
   const getBalance = () => {
     const total = calculateTotal();
     const paid = parseFloat(paidAmount);
@@ -278,6 +281,26 @@ const addToBillInvoice = (InvoiceItem) => {
   }
 };
 
+/** flip “return” flag and immediately give / take stock back */
+const toggleReturn = (item_code) => {
+  setCart(prev =>
+    prev.map(item =>
+      item.item_code === item_code
+        ? { ...item, isReturn: !item.isReturn }
+        : item
+    )
+  );
+
+  // adjust store quantity
+  const cartItem = cart.find(ci => ci.item_code === item_code);
+  if (!cartItem) return;
+  const delta = cartItem.isReturn ? -cartItem.qty : cartItem.qty; // before flip
+  setStocks(prev =>
+    prev.map(s =>
+      s.item_code === item_code ? { ...s, qty: s.qty + delta } : s
+    )
+  );
+};
 
   return (
     <div style={{ display: "flex", gap: "30px", padding: "20px" }}>
@@ -440,19 +463,39 @@ const addToBillInvoice = (InvoiceItem) => {
                       </td>
                       <td>{totalPrice.toFixed(2)}</td>
                       <td>
-                        <button
-                          onClick={() => removeFromBill(item.item_code)}
-                          style={{
-                            backgroundColor: "#ff4d4f",
-                            color: "white",
-                            border: "none",
-                            padding: "5px 10px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          Remove
-                        </button>
-                      </td>
+  {item.original ? (
+    /*  show Return / Undo button */
+    <button
+      onClick={() => toggleReturn(item.item_code)}
+      style={{
+        backgroundColor: item.isReturn ? "#faad14" : "#722ed1",
+        color           : "white",
+        border          : "none",
+        padding         : "5px 10px",
+        borderRadius    : "4px",
+        cursor          : "pointer",
+      }}
+    >
+      {item.isReturn ? "Undo" : "Return"}
+    </button>
+  ) : (
+    /*  brand-new lines behave as before – normal remove */
+    <button
+      onClick={() => removeFromBill(item.item_code)}
+      style={{
+        backgroundColor: "#ff4d4f",
+        color           : "white",
+        border          : "none",
+        padding         : "5px 10px",
+        borderRadius    : "4px",
+        cursor          : "pointer",
+      }}
+    >
+      Remove
+    </button>
+  )}
+</td>
+
                     </tr>
                   );
                 })}

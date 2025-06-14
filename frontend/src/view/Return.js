@@ -17,7 +17,7 @@ const Return = () => {
     }
   };
   const handleReturn = async (invoiceId) => {
-     navigate(`/payment`, { state: { invoiceId } });
+     navigate(`/returnitem`, { state: { invoiceId } });
   };
 
   useEffect(() => {

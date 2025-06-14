@@ -10,7 +10,7 @@ import Payment from './view/Payment';
 import ShopDetails from './view/ShopDetails';
 import ReturnPayment from './view/Return';
 import ChangeMongoCreds from './components/ChangeMongoCreds'
-
+import ReturnItemPage from './view/ReturnItemPage';
 
 function App() {
   return (
@@ -23,6 +23,7 @@ function App() {
         <Route path="/shop" element={<ShopDetails />} />
         <Route path="/retunpayment" element={<ReturnPayment />} />
         <Route path="/mongo" element={<ChangeMongoCreds />} />
+        <Route path="/returnitem" element={<ReturnItemPage />} />
         {/* User Dashboard */}
         <Route
           path="/user-dashboard"
