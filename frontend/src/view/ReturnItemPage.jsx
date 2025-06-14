@@ -71,6 +71,30 @@ const ReturnItemPage = () => {
     }, 0);
   };
 
+// const handleReturn = async () => {
+//   if (!user) {
+//     alert("User not logged in.");
+//     return;
+//   }
+
+//   const returnItems = Object.entries(selectedItems).map(([itemKey, qty]) => {
+//     const [, index] = itemKey.split("-");
+//     const item = invoice.items[parseInt(index)];
+//     return {
+//       itemCode: item.item_code,
+//       qty,
+//     };
+//   });
+
+//   try {
+//     await processReturn(invoiceId, returnItems, user);
+//     alert("Items returned successfully!");
+//     navigate("/payment");
+//   } catch (err) {
+//     console.error("Return failed:", err);
+//     alert("Return failed. Please try again.");
+//   }
+// };
 const handleReturn = async () => {
   if (!user) {
     alert("User not logged in.");
@@ -86,10 +110,17 @@ const handleReturn = async () => {
     };
   });
 
+  const totalRefund = calculateTotalRefund();
+
   try {
     await processReturn(invoiceId, returnItems, user);
     alert("Items returned successfully!");
-    navigate("/payment");
+    navigate("/payment", {
+      state: {
+        invoiceId,
+        totalRefund,
+      },
+    });
   } catch (err) {
     console.error("Return failed:", err);
     alert("Return failed. Please try again.");
